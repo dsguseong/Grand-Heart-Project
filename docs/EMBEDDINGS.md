@@ -72,11 +72,61 @@ flask compute-embeddings --backend histogram
 
 ---
 
+## 내 PC에서 TensorFlow가 안 될 때
+
+윈도우 + Anaconda 조합에서 TensorFlow DLL 로딩이 실패하는 경우가 있습니다.
+
+```
+ImportError: DLL load failed while importing _pywrap_tensorflow_internal
+```
+
+CPU가 AVX를 지원하고 VC++ 재배포 패키지도 최신인데 이 오류가 나면, 버전을 낮춰
+보세요 (파이썬 3.11 기준).
+
+```bash
+pip uninstall -y tensorflow
+pip install "tensorflow==2.15.1"
+python -c "import tensorflow as tf; print(tf.__version__)"
+```
+
+그래도 안 되면 **계산만 Colab에서 하고 결과 파일만 받아오면 됩니다.**
+내 PC에는 TensorFlow가 전혀 필요 없습니다.
+
+### Colab에서
+
+`scripts/colab_embeddings.py` 와 `models/autoencoder.h5` 를 업로드한 뒤:
+
+```python
+!python colab_embeddings.py \
+    --model autoencoder.h5 \
+    --images /content/Kfoods/Foods \
+    --output embeddings_by_name.npz
+```
+
+`embeddings_by_name.npz` 를 다운로드합니다.
+
+### 내 PC에서
+
+```bash
+flask import-embeddings embeddings_by_name.npz
+flask embedding-info
+```
+
+DB의 음식 id는 Colab이 알 수 없으므로, 이 파일은 **음식 이름**(`카테고리_음식명`)을
+키로 씁니다. `import-embeddings` 가 이름을 DB의 id로 연결합니다. numpy만 쓰므로
+TensorFlow 없이 동작합니다.
+
+이름이 맞지 않으면 어떤 이름이 어긋났는지 알려주니, 같은 사진 폴더로 계산했는지
+확인하시면 됩니다.
+
+---
+
 ## 확인 명령어
 
 ```bash
 flask embedding-info          # 백엔드 · 음식 수 · 차원 · 가중치
 flask similar 12 --top 10     # 12번 음식과 생김새가 비슷한 음식
+flask import-embeddings <파일>  # 다른 곳에서 계산한 임베딩 가져오기
 ```
 
 `similar` 는 원본 노트북의 유사 이미지 검색에 대응합니다. 노트북은 유클리드 거리를 썼는데, 여기서는 벡터를 단위 길이로 정규화해 두어 코사인 유사도로 계산합니다. 단위 벡터에서는 `‖a-b‖² = 2 - 2·cos` 이므로 **순위가 완전히 동일**하고, 내적 한 번이라 더 빠릅니다.

@@ -1,0 +1,15 @@
+# Optional: only needed to COMPUTE embeddings, never to run the web server.
+# Install on your dev machine or in Colab, not on the production host.
+#
+#   pip install -r requirements-ml.txt
+#
+# Keep this file ASCII-only (pip on Korean Windows reads it as cp949).
+
+# Backend "resnet" - pretrained feature extractor, no training required.
+# For a smaller CPU-only build use:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch>=2.0
+torchvision>=0.15
+
+# Backend "autoencoder" - train your own model with app/ml/train_autoencoder.py
+tensorflow>=2.12
