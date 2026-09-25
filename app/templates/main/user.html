@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import meter %}
+
+{% block content %}
+<div class="card">
+  <div class="row" style="border:0">
+    <img class="avatar" style="width:72px;height:72px" src="{{ user.avatar(144) }}" alt="">
+    <div class="row__main">
+      <h1 style="margin-bottom:0.2rem">{{ user.username }}</h1>
+      {% if user.about_me %}<p class="hint" style="margin:0">{{ user.about_me }}</p>{% endif %}
+      <p class="hint" style="margin:0.3rem 0 0">
+        팔로워 {{ user.followers.count() }} · 팔로잉 {{ user.followed.count() }}
+        {% if is_mutual %}<span class="tag tag--like">서로 팔로우</span>{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div style="margin-top:1rem">
+    {% if user.id == current_user.id %}
+      <a class="btn" href="{{ url_for('main.edit_profile') }}">프로필 수정</a>
+      <a class="btn" href="{{ url_for('foods.my_tastes') }}">내 취향</a>
+    {% elif current_user.is_following(user) %}
+      <form class="inline-form" method="post" action="{{ url_for('main.unfollow', username=user.username) }}">
+        {{ form.hidden_tag() }}
+        <button class="btn" type="submit">언팔로우</button>
+      </form>
+      {% if is_mutual %}
+        <a class="btn btn--primary" href="{{ url_for('recommend.index') }}">함께 먹을 음식 보기</a>
+      {% endif %}
+    {% else %}
+      <form class="inline-form" method="post" action="{{ url_for('main.follow', username=user.username) }}">
+        {{ form.hidden_tag() }}
+        <button class="btn btn--primary" type="submit">팔로우</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card__head"><h2>취향 수집 정도</h2></div>
+  {{ meter(progress) }}
+</div>
+
+{% if top_likes %}
+  <div class="card">
+    <div class="card__head"><h2>좋아하는 음식</h2></div>
+    <div class="grid">
+      {% for item in top_likes %}
+        {% set cover = item.cover() %}
+        <div class="tile">
+          {% if cover %}<img src="{{ cover.url }}" alt="{{ item.name }}">{% endif %}
+          <div class="tile__body">
+            <div class="tile__name">{{ item.name }}</div>
+            <div class="tile__meta">{{ item.category }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

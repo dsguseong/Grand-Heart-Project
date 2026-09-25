@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "_macros.html" import meter %}
+
+{% block content %}
+<h1>{{ current_user.username }} 님, 오늘은 뭐 드실래요?</h1>
+
+<div class="card">
+  {{ meter(progress) }}
+  <p class="hint" style="margin-top:0.75rem">
+    {% if progress.remaining %}
+      아직 {{ progress.remaining }}개가 남았습니다. 많이 고를수록 추천이 정확해집니다.
+    {% else %}
+      준비된 음식을 모두 평가했습니다.
+    {% endif %}
+  </p>
+  <a class="btn btn--primary" href="{{ url_for('foods.swipe') }}">음식 고르기</a>
+  <a class="btn" href="{{ url_for('foods.catalog') }}">음식 목록 보기</a>
+</div>
+
+<div class="card">
+  <div class="card__head">
+    <h2>내 평가</h2>
+    <a class="hint" href="{{ url_for('foods.my_tastes') }}">전체 보기</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat__value">{{ breakdown[SCORE_LIKE] }}</div><div class="stat__label">좋아요</div></div>
+    <div class="stat"><div class="stat__value">{{ breakdown[SCORE_SOSO] }}</div><div class="stat__label">보통</div></div>
+    <div class="stat"><div class="stat__value">{{ breakdown[SCORE_DISLIKE] }}</div><div class="stat__label">싫어요</div></div>
+    <div class="stat"><div class="stat__value">{{ progress.excluded }}</div><div class="stat__label">못 먹어요</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card__head">
+    <h2>함께 먹을 사람</h2>
+    <a class="hint" href="{{ url_for('main.people') }}">사람 찾기</a>
+  </div>
+  {% if friends %}
+    <ul class="rows">
+      {% for friend in friends %}
+        <li class="row">
+          <img class="avatar" src="{{ friend.avatar(40) }}" alt="">
+          <div class="row__main">
+            <a href="{{ url_for('main.user', username=friend.username) }}"><strong>{{ friend.username }}</strong></a>
+            {% if friend.about_me %}<div class="hint">{{ friend.about_me }}</div>{% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+    <p style="margin-top:1rem"><a class="btn btn--primary" href="{{ url_for('recommend.index') }}">함께 먹을 음식 추천받기</a></p>
+  {% else %}
+    <p class="hint">
+      아직 서로 팔로우한 사람이 없습니다. 두 사람이 서로 팔로우해야 함께 추천을 받을 수 있습니다.
+    </p>
+    <a class="btn" href="{{ url_for('main.people') }}">사람 찾기</a>
+  {% endif %}
+</div>
+{% endblock %}

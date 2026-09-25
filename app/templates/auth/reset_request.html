@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+
+{% block content %}
+<div class="narrow">
+  <div class="card">
+    <h1>비밀번호 재설정</h1>
+    <p class="hint">가입한 이메일로 재설정 링크를 보냅니다. 링크는 10분 동안 유효합니다.</p>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.email, autofocus=true) }}
+      {{ form.submit(class="btn btn--primary btn--block") }}
+    </form>
+  </div>
+</div>
+{% endblock %}

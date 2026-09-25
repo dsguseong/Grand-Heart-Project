@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="empty">
+  <h2>파일이 너무 큽니다</h2>
+  <p>한 번에 올릴 수 있는 용량을 넘었습니다. 나눠서 올려 주세요.</p>
+  <a class="btn" href="{{ url_for('foods.upload') }}">사진 등록으로</a>
+</div>
+{% endblock %}

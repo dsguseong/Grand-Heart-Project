@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>함께 먹을 음식</h1>
+
+{% if friends %}
+  <div class="card">
+    <div class="card__head"><h2>누구와 먹나요?</h2></div>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="checklist">
+        {% for friend in friends %}
+          <label class="checkrow">
+            <input type="checkbox" name="members" value="{{ friend.id }}"
+                   {% if friend.id in selected_ids %}checked{% endif %}>
+            <img class="avatar" src="{{ friend.avatar(40) }}" alt="">
+            <span>{{ friend.username }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      <button class="btn btn--primary" type="submit">추천받기</button>
+    </form>
+  </div>
+{% else %}
+  <div class="card empty">
+    <h2>서로 팔로우한 사람이 아직 없습니다</h2>
+    <p>두 사람이 서로 팔로우해야 함께 먹을 음식을 추천합니다.</p>
+    <a class="btn btn--primary" href="{{ url_for('main.people') }}">사람 찾기</a>
+  </div>
+{% endif %}
+
+{% if result %}
+  {% for note in result.notes %}
+    <div class="flash flash--warning">{{ note }}</div>
+  {% endfor %}
+
+  {% if result.recommendations %}
+    <div class="card">
+      <div class="card__head">
+        <h2>{{ result.members | map(attribute='username') | join(', ') }} 에게 맞는 음식</h2>
+      </div>
+      {% for rec in result.recommendations %}
+        {% set cover = rec.item.cover() %}
+        <div class="result">
+          <div class="result__rank">{{ loop.index }}</div>
+          {% if cover %}<img src="{{ cover.url }}" alt="{{ rec.item.name }}">{% endif %}
+          <div class="row__main">
+            <strong style="font-size:1.1rem">{{ rec.item.name }}</strong>
+            <div class="hint">{{ rec.item.category }} · {{ rec.reason }}</div>
+            <div class="hint">
+              카테고리 {{ '%+.2f' % rec.category_score }}
+              {% if rec.embedding_score is not none %}
+                · 사진 유사도 {{ '%+.2f' % rec.embedding_score }}
+              {% endif %}
+            </div>
+            <div class="hint">
+              {% for name, score in rec.per_user.items() %}
+                {{ name }}: {% if score is none %}평가 없음{% else %}{{ '%+.0f' % score }}{% endif %}{% if not loop.last %} · {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          <div>
+            <div class="result__score">{{ '%.2f' % rec.score }}</div>
+            <button class="btn btn--sm" type="button" data-keyword="{{ rec.item.name }}">주변 식당</button>
+          </div>
+        </div>
+      {% endfor %}
+      <div id="places" class="hint" style="margin-top:1rem"></div>
+    </div>
+
+    <div class="card">
+      <div class="card__head"><h2>카테고리 점수</h2></div>
+      <p class="hint">
+        각자의 카테고리 선호도(-1 ~ +1)를 인원수로 나눈 가중 평균입니다.
+        {% if result.used_embeddings %}
+          아직 아무도 평가하지 않은 음식은 이미지 임베딩으로 보완했습니다.
+        {% endif %}
+        {% if result.vetoed_categories %}
+          한 명이라도 싫어해서 제외한 카테고리: {{ result.vetoed_categories | join(', ') }}.
+        {% endif %}
+      </p>
+      <ul class="rows">
+        {% for category, score in result.category_scores.items() %}
+          <li class="row">
+            <div class="row__main">{{ category }}</div>
+            <strong>{{ '%+.2f' % score }}</strong>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% elif not result.notes %}
+    <div class="card empty">
+      <h2>추천할 음식을 찾지 못했습니다</h2>
+      <p>구성원 모두 조금 더 평가하면 결과가 나옵니다.</p>
+      <a class="btn" href="{{ url_for('foods.swipe') }}">음식 고르러 가기</a>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // 주변 식당: 브라우저 위치 권한을 받은 뒤 서버에 조회를 맡깁니다.
+  // 카카오 API 키는 서버에만 두고 클라이언트로 내보내지 않습니다.
+  const output = document.getElementById("places");
+
+  document.querySelectorAll("button[data-keyword]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const keyword = button.dataset.keyword;
+      if (!navigator.geolocation) {
+        output.textContent = "이 브라우저에서는 위치를 쓸 수 없습니다.";
+        return;
+      }
+      output.textContent = `'${keyword}' 파는 곳을 찾는 중...`;
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const params = new URLSearchParams({
+            keyword,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          try {
+            const response = await fetch(`{{ url_for('recommend.nearby') }}?${params}`);
+            const data = await response.json();
+            if (!data.ok || data.places.length === 0) {
+              output.textContent = data.message || "주변에서 찾지 못했습니다.";
+              return;
+            }
+            output.innerHTML = data.places
+              .map(
+                (p) =>
+                  `<div class="row"><div class="row__main"><a href="${p.url}" target="_blank" rel="noopener">${p.name}</a><div class="hint">${p.address ?? ""}</div></div><span>${p.distance_m ?? "-"}m</span></div>`
+              )
+              .join("");
+          } catch {
+            output.textContent = "식당 정보를 불러오지 못했습니다.";
+          }
+        },
+        () => {
+          output.textContent = "위치 권한이 필요합니다.";
+        }
+      );
+    });
+  });
+</script>
+{% endblock %}
