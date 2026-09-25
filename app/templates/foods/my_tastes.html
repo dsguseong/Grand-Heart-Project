@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import meter, pager %}
+
+{% block content %}
+<h1>내 취향</h1>
+<div class="card card--plain">{{ meter(progress) }}</div>
+
+{% if preferences %}
+  <div class="card">
+    <ul class="rows">
+      {% for p in preferences %}
+        <li class="row">
+          <div class="row__main">
+            <strong>{{ p.item.name }}</strong>
+            <span class="hint">· {{ p.item.category }}</span>
+          </div>
+          <span class="tag {% if p.score == SCORE_LIKE %}tag--like{% elif p.score == SCORE_SOSO %}tag--soso{% else %}tag--nope{% endif %}">{{ p.label }}</span>
+          <form class="inline-form" method="post" action="{{ url_for('foods.exclusions') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="item_id" value="{{ p.item.id }}">
+            <input type="hidden" name="action" value="add">
+            <button class="btn btn--sm" type="submit">못 먹어요</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {{ pager(pagination, 'foods.my_tastes') }}
+{% else %}
+  <div class="card empty">
+    <h2>아직 평가한 음식이 없습니다</h2>
+    <p>사진을 보면서 좋아요·보통·싫어요를 골라 주세요.</p>
+    <a class="btn btn--primary" href="{{ url_for('foods.swipe') }}">고르러 가기</a>
+  </div>
+{% endif %}
+
+<p class="hint"><a href="{{ url_for('foods.exclusions') }}">못 먹는 음식 관리</a></p>
+{% endblock %}

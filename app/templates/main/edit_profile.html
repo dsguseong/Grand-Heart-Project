@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+
+{% block content %}
+<div class="narrow">
+  <div class="card">
+    <h1>프로필 수정</h1>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.username, autofocus=true) }}
+      {{ field(form.about_me) }}
+      {{ form.submit(class="btn btn--primary") }}
+      <a class="btn" href="{{ url_for('main.user', username=current_user.username) }}">취소</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import meter %}
+
+{% block content %}
+<div class="narrow">
+  <div class="card card--plain">{{ meter(progress) }}</div>
+
+  {% if item %}
+    <div class="dish">
+      {% if image %}
+        <img class="dish__photo" src="{{ image.url }}" alt="{{ item.name }}">
+      {% endif %}
+      <div class="dish__caption">
+        <div class="dish__category">{{ item.category }}</div>
+        <p class="dish__name">{{ item.name }}</p>
+      </div>
+      <form class="votes" method="post" action="{{ url_for('foods.vote', item_id=item.id) }}">
+        {{ form.hidden_tag() }}
+        <button class="vote vote--nope" type="submit" name="action" value="dislike">
+          <span class="vote__mark" aria-hidden="true">✕</span>싫어요
+        </button>
+        <button class="vote vote--soso" type="submit" name="action" value="soso">
+          <span class="vote__mark" aria-hidden="true">~</span>보통
+        </button>
+        <button class="vote vote--like" type="submit" name="action" value="like">
+          <span class="vote__mark" aria-hidden="true">♥</span>좋아요
+        </button>
+        <button class="vote vote--wide" type="submit" name="action" value="exclude">
+          못 먹어요 — 앞으로 이 음식은 보여주지 않습니다
+        </button>
+      </form>
+    </div>
+  {% else %}
+    <div class="card empty">
+      <h2>준비된 음식을 모두 봤습니다</h2>
+      <p>이제 친구와 함께 먹을 음식을 추천받을 수 있습니다.</p>
+      <a class="btn btn--primary" href="{{ url_for('recommend.index') }}">함께 먹을 음식 고르기</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

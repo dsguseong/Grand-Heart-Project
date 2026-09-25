@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="empty">
+  <h2>권한이 없습니다</h2>
+  <p>이 페이지는 관리자만 볼 수 있습니다.</p>
+  <a class="btn" href="{{ url_for('main.index') }}">홈으로</a>
+</div>
+{% endblock %}

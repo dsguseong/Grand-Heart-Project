@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+
+{% block content %}
+<div class="narrow">
+  <div class="card">
+    <h1>로그인</h1>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.username, autofocus=true) }}
+      {{ field(form.password) }}
+      <div class="field">
+        <label style="font-weight:400">{{ form.remember_me() }} 로그인 상태 유지</label>
+      </div>
+      {{ form.submit(class="btn btn--primary btn--block") }}
+    </form>
+    <p class="hint" style="margin-top:1rem">
+      계정이 없나요? <a href="{{ url_for('auth.register') }}">가입하기</a><br>
+      비밀번호를 잊었다면 <a href="{{ url_for('auth.reset_password_request') }}">재설정</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% macro field(f, autofocus=false) %}
+  <div class="field">
+    {{ f.label }}
+    {{ f(autofocus=autofocus) }}
+    {% for error in f.errors %}
+      <p class="field__error">{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro meter(p) %}
+  <div class="meter__label">
+    <span>{{ p.rated }}개 평가 · {{ p.excluded }}개 제외</span>
+    <span>{{ p.percent }}%</span>
+  </div>
+  <div class="meter"><div class="meter__fill" style="width: {{ p.percent }}%"></div></div>
+{% endmacro %}
+
+{# Jinja 매크로 시그니처에는 **kwargs 를 쓸 수 없습니다.
+   대신 매크로 안에서 특수 변수 kwargs 를 참조하면 여분의 키워드 인자가 담깁니다. #}
+{% macro pager(pagination, endpoint) %}
+  {% if pagination.pages > 1 %}
+    <nav class="pager">
+      {% if pagination.has_prev %}
+        <a class="btn btn--sm" href="{{ url_for(endpoint, page=pagination.prev_num, **kwargs) }}">이전</a>
+      {% endif %}
+      <span class="btn btn--sm">{{ pagination.page }} / {{ pagination.pages }}</span>
+      {% if pagination.has_next %}
+        <a class="btn btn--sm" href="{{ url_for(endpoint, page=pagination.next_num, **kwargs) }}">다음</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% endmacro %}

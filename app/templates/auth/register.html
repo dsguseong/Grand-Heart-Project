@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+
+{% block content %}
+<div class="narrow">
+  <div class="card">
+    <h1>회원가입</h1>
+    <p class="hint">가입하면 음식 사진을 한 장씩 보면서 취향을 모읍니다.</p>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.username, autofocus=true) }}
+      {{ field(form.email) }}
+      {{ field(form.password) }}
+      {{ field(form.password2) }}
+      {{ form.submit(class="btn btn--primary btn--block") }}
+    </form>
+    <p class="hint" style="margin-top:1rem">
+      이미 계정이 있나요? <a href="{{ url_for('auth.login') }}">로그인</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pager %}
+
+{% block content %}
+<h1>음식 목록</h1>
+<form class="toolbar" method="get">
+  <div class="field">
+    <label for="q">이름 또는 카테고리</label>
+    <input type="search" id="q" name="q" value="{{ q }}" placeholder="예: 찌개">
+  </div>
+  <button class="btn" type="submit">검색</button>
+</form>
+
+{% if items %}
+  <div class="grid">
+    {% for item in items %}
+      {% set cover = item.cover() %}
+      <div class="tile">
+        {% if cover %}<img src="{{ cover.url }}" alt="{{ item.name }}">{% endif %}
+        <div class="tile__body">
+          <div class="tile__name">{{ item.name }}</div>
+          <div class="tile__meta">{{ item.category }} · 사진 {{ item.images.count() }}장</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {{ pager(pagination, 'foods.catalog', q=q) }}
+{% else %}
+  <div class="card empty"><h2>등록된 음식이 없습니다</h2></div>
+{% endif %}
+{% endblock %}

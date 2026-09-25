@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>음식 사진 등록</h1>
+<div class="card">
+  <div class="stats">
+    <div class="stat"><div class="stat__value">{{ total_items }}</div><div class="stat__label">음식 종류</div></div>
+    <div class="stat"><div class="stat__value">{{ total_images }}</div><div class="stat__label">사진</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <p class="hint">
+    파일 이름은 <code>카테고리_음식명_번호.jpg</code> 형식이어야 합니다.
+    예) <code>찌개_김치찌개1_0007.jpg</code> → 카테고리 '찌개', 음식 '김치찌개'.
+    규칙에 맞지 않는 파일은 건너뛰고 어떤 파일이 빠졌는지 알려 줍니다.
+  </p>
+  <form method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="field">
+      <label for="images">사진 (여러 장 선택 가능)</label>
+      <input type="file" id="images" name="images" accept="image/*" multiple>
+    </div>
+    <button class="btn btn--primary" type="submit">등록</button>
+  </form>
+  <p class="hint" style="margin-top:0.75rem">
+    폴더를 통째로 넣으려면 터미널에서: <code>flask import-foods ./Data/KFoods/Foods</code>
+  </p>
+</div>
+
+{% if recent %}
+  <div class="card">
+    <div class="card__head"><h2>최근 등록</h2></div>
+    <div class="grid">
+      {% for image in recent %}
+        <div class="tile">
+          <img src="{{ image.url }}" alt="{{ image.item.name }}">
+          <div class="tile__body">
+            <div class="tile__name">{{ image.item.name }}</div>
+            <div class="tile__meta">{{ image.item.category }}</div>
+            <form method="post" action="{{ url_for('foods.delete_image', image_id=image.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn--sm btn--danger" type="submit">삭제</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

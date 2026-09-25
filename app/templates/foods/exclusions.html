@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>못 먹는 음식</h1>
+<p class="hint">여기에 넣은 음식은 나에게도, 함께 먹는 자리에서도 추천되지 않습니다.</p>
+
+<div class="card">
+  <div class="card__head"><h2>지금 빼둔 음식 {{ excluded|length }}개</h2></div>
+  {% if excluded %}
+    <ul class="rows">
+      {% for e in excluded %}
+        <li class="row">
+          <div class="row__main">
+            <strong>{{ e.item.name }}</strong>
+            <span class="hint">· {{ e.item.category }}{% if e.reason %} · {{ e.reason }}{% endif %}</span>
+          </div>
+          <form class="inline-form" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="item_id" value="{{ e.item.id }}">
+            <input type="hidden" name="action" value="remove">
+            <button class="btn btn--sm" type="submit">되돌리기</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="hint">아직 없습니다.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card__head"><h2>음식 찾아서 빼기</h2></div>
+  <form class="toolbar" method="get">
+    <div class="field">
+      <label for="q">음식 이름</label>
+      <input type="search" id="q" name="q" value="{{ q }}" placeholder="예: 김치찌개">
+    </div>
+    <button class="btn" type="submit">검색</button>
+  </form>
+  {% if catalog %}
+    <ul class="rows">
+      {% for item in catalog[:40] %}
+        <li class="row">
+          <div class="row__main">
+            <strong>{{ item.name }}</strong>
+            <span class="hint">· {{ item.category }}</span>
+          </div>
+          <form class="inline-form" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="item_id" value="{{ item.id }}">
+            <input type="hidden" name="action" value="add">
+            <button class="btn btn--sm btn--danger" type="submit">빼기</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="hint">조건에 맞는 음식이 없습니다.</p>
+  {% endif %}
+</div>
+{% endblock %}

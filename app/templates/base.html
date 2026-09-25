@@ -1,41 +1,49 @@
-{% extends 'bootstrap/base.html' %}
-
-{% block title %}
-    {% if title %}{{ title }} - 뭐 먹으러 갈까?{% else %}뭐 먹으러 갈까에 오신것을 환영합니다.{% endif %}
-{% endblock %}
-
-{% block navbar %}
-    <nav class="navbar navbar-default">
-        뭐 먹으러 갈까?:
-        <button type="button" class="btn btn-default navbar-btn"><a href="{{ url_for('index') }}">Home</a></button>
-        <button type="button" class="btn btn-default navbar-btn"><a href="{{ url_for('explore') }}">Explore</a></button> 
-        <button type="button" class="btn btn-default navbar-btn"><a href="/upload">음식업로드</a></button> 
-        <button type="button" class="btn btn-default navbar-btn"><a href="/random_show">랜덤음식선택하기</a></button> 
-        
-        
-        {% if current_user.is_anonymous %}
-        <button type="button" class="btn btn-default navbar-btn"><a href="{{ url_for('login') }}">Login</a></button>
-       
-        {% else %}
-        <button type="button" class="btn btn-default navbar-btn"><a href="{{ url_for('user', username=current_user.username) }}">Profile</a></button>
-        <button type="button" class="btn btn-default navbar-btn"><a href="{{ url_for('logout') }}">Logout</a></button>
-        
-        
-        {% endif %} 
-    </nav>
-{% endblock %}
-
-{% block content %}
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-info" role="alert">{{ message }}</div>
-            {% endfor %}
+{# 기존 base.html 은 bootstrap/base.html 을 상속하면서 {% block content %} 안에
+   {% block app_content %} 를 두었는데, 자식 템플릿 대부분이 content 를 덮어써
+   네비게이션과 플래시 메시지가 통째로 사라졌습니다(register.html 과 404.html 만
+   app_content 를 썼습니다). 블록을 content 하나로 통일했습니다. #}
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if title %}{{ title }} · {% endif %}뭐 먹으러 갈까?</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="{{ url_for('main.index') }}">뭐 먹으러 <span>갈까?</span></a>
+      {% if current_user.is_authenticated %}
+        <a class="navlink" href="{{ url_for('foods.swipe') }}">고르기</a>
+        <a class="navlink" href="{{ url_for('recommend.index') }}">함께 먹기</a>
+        <a class="navlink" href="{{ url_for('foods.my_tastes') }}">내 취향</a>
+        <a class="navlink" href="{{ url_for('main.people') }}">사람 찾기</a>
+        {% if current_user.is_admin %}
+          <a class="navlink" href="{{ url_for('foods.upload') }}">사진 등록</a>
         {% endif %}
-        {% endwith %}
-
-        {# application content needs to be provided in the app_content block #}
-        {% block app_content %}{% endblock %}
+        <a class="navlink" href="{{ url_for('main.user', username=current_user.username) }}">{{ current_user.username }}</a>
+        <a class="navlink" href="{{ url_for('auth.logout') }}">로그아웃</a>
+      {% else %}
+        <a class="navlink" href="{{ url_for('auth.login') }}">로그인</a>
+        <a class="navlink" href="{{ url_for('auth.register') }}">회원가입</a>
+      {% endif %}
     </div>
-{% endblock %}
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="flash flash--{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
